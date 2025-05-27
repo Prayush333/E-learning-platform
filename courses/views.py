@@ -12,6 +12,8 @@ from .form import ModuleFormSet
 from django.apps import apps
 from django.forms.models import modelform_factory
 from .models import Module, Content
+from braces.views import CsrfExemptMixin, JsonRequestResponseMixin
+
 
 
 class OwnerMixin:
@@ -38,7 +40,7 @@ class OwnerCourseMixin(
     success_url = reverse_lazy('manage_course_list') 
 
 
-class OwnerCourseEditMixin(OwnerCourseMixin, OwnerCourseEditMixin):
+class OwnerCourseEditMixin(OwnerCourseMixin, OwnerEditMixin):
     template_name= 'courses/manage/course/form.html'
     
 
@@ -153,7 +155,7 @@ class ContentCreateUpdateView(TemplateResponseMixin, View):
         {'form': form, 'object': self.obj}
         )
     
-class ContentDeleteView(view):
+class ContentDeleteView(View):
     def podt(self,request,id):
         content = get_object_or_404(
             content,
@@ -177,5 +179,16 @@ class ModuleContentListView(TemplateResponseMixin, module_id):
             )
         return self.render_to_response({'module':module})
 
+
+class ModuleOrderView(CsrfExemptMixin, JsonRequestResponseMixin, View):
+    def post(self, request):
+        for id, order in self.request_json.items():
+            Module.objects.filter(
+                id=id,
+                course__owner = request.user
+            ).update(order=order)
+        return self.render_json_response({'saved':'OK'})
     
+
+
     
