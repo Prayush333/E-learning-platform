@@ -9,6 +9,16 @@ from django.forms.models import modelform_factory
 from .models import Course, Module, Content
 from .form import ModuleFormSet
 from braces.views import CsrfExemptMixin, JsonRequestResponseMixin
+from django.views.generic.base import TemplateView
+from .models import Subject
+
+class HomePageView(TemplateView):
+    template_name = 'courses/home.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['subjects'] = Subject.objects.prefetch_related('courses')
+        return context
 
 
 
